@@ -1,12 +1,12 @@
-class HDLwave {
+class WaveDraw {
     constructor(hostDiv, options) {
         if (!window.$) {
-            throw "jQuery required for event handling. Please add jQuery to your page's head tag before HDLwave loads."
+            throw "jQuery required for event handling. Please add jQuery to your page's head tag before WaveDraw loads."
         }
         hostDiv.innerHTML = ''
         this.hostDiv = hostDiv  
         this.options = options
-        this.drawBoard()
+        this.drawWaveform()
         this.fixTransitions()
     }
     modTimeCol (opt=0) {
@@ -32,19 +32,24 @@ class HDLwave {
                 if (i < (Array.from (document.querySelectorAll (".event")).slice (1).length - 1)) {
                     var next = Array.from (document.querySelectorAll (".event")).slice (1)[i + 1]
                     var highlow = (curr.classList.contains ('logic1')) && (next.classList.contains ('logic0'))
-                    var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
                     var lowhigh = (curr.classList.contains ('logic0')) && (next.classList.contains ('logic1'))
+                    var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
                     var samesignal = curr.id.slice (0, curr.id.indexOf ('/')) == next.id.slice (0, next.id.indexOf ('/'))
                     if ((highlow || lowhigh) && samesignal) {
                         curr.style.borderRight = '1px solid green'  
                         next.style.borderLeft = '1px solid green'  
+                    }
+                    else if ((!highlow || lowhigh) || (highlow || !lowhigh) && samesignal) {
+                        curr.style.borderRight = ''  
+                        next.style.borderLeft = ''  
                     }
                 }
             })
         }
         else {
             var curr = Array.from (document.querySelectorAll (".event")).slice (1)[idx]
-            if (idx < (Array.from (document.querySelectorAll (".event")).slice (1).length - 1)) {
+            // ensure current wave unit is not the very last one in waveform before setting transition
+            if (idx < (Array.from (document.querySelectorAll (".event")).slice (1).length - 1)) {   
                 var next = Array.from (document.querySelectorAll (".event")).slice (1)[idx + 1]
                 var highlow = (curr.classList.contains ('logic1')) && (next.classList.contains ('logic0'))
                 var lowhigh = (curr.classList.contains ('logic0')) && (next.classList.contains ('logic1'))
@@ -59,6 +64,7 @@ class HDLwave {
                     next.style.borderLeft = ''  
                 }
             }
+            // ensure current wave unit is not the very first one in waveform before setting transition
             if (idx > 0) {
                 var prev = Array.from (document.querySelectorAll (".event")).slice (1)[idx - 1]
                 var highlow = (curr.classList.contains ('logic1')) && (prev.classList.contains ('logic0'))
@@ -157,19 +163,25 @@ class HDLwave {
         else if (!e.target.classList.contains ('logic0')) {
             pullSignalByEvent (e, _this, 0)
         }
+        else {
+            pullSignalByEvent (e, _this, 0)
+        }
     }
     addUnitToWaverow (waverow, signal, time, cssClass) {
         var unit = document.createElement ("div")
+        unit.classList.add ('event')
         if (cssClass == 'logicZ') {
             this.setZForUnitElement (unit, 1)
         }
         else if (cssClass == 'logicX') {
             unit.innerHTML = '<p class="unselectable" style="color: red; font-size: 24px;">X</p>'
         }
-        unit.classList.add ('event', cssClass)
+        if (cssClass != 'blank') {
+            unit.classList.add (cssClass)
+        }
         
         unit.id = [signal, time].join ('/')
-        if (!Object.keys (this.options.inputs).includes (signal)) {
+        if (!Object.keys (this.options.fixed).includes (signal)) {
             $(document).on ('mousedown', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
             $(document).on ('touchstart', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
             $(document).on ('mouseenter', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
@@ -181,12 +193,12 @@ class HDLwave {
         $('#forceLogic' + opt).addClass ('logicSelected')
         this.options.forcedValue = opt
     }
-    drawBoard () {
+    drawWaveform () {
         function optionsAreValid (options) {
-            return ['inputs', 'outputs'].map (opt => opt in options).reduce ((prev, curr) => prev && curr, true)
+            return ['fixed', 'editable'].map (opt => opt in options).reduce ((prev, curr) => prev && curr, true)
         }
         function findMaxResolution (options) {
-            var bitstreams = Object.values (options.inputs).concat (Object.values (options.outputs))
+            var bitstreams = Object.values (options.fixed).concat (Object.values (options.editable))
             var maxBits = 0
             bitstreams.forEach (bs => { maxBits = maxBits < bs.length ? bs.length : maxBits })
             return maxBits
@@ -194,24 +206,20 @@ class HDLwave {
         var maxchars = 0;
         if (!optionsAreValid (this.options)) {
             throw "Error in initialization: required at least 2 options - " +
-                  "input and output signals with bitstreams and associated field elements."
+                  "fixed (unmodifiable) with bitstreams, and editable signals " + 
+                  "with associated field element names.  Please see README."
         }
         else {
             try {
-                var inputs = Object.keys (this.options.inputs)
-                var outputs = Object.keys (this.options.outputs)
-                var signals = inputs.concat (outputs)
+                var fixed = Object.keys (this.options.fixed)
+                var editable = Object.keys (this.options.editable)
+                var signals = fixed.concat (editable)
                 this.options.signals = signals
                 var resolution = this.options.resolution || findMaxResolution(this.options)
                 if (!this.options.resolution) {
                     this.options.resolution = resolution
                 }
-                var clock = this.options.clock || []
-                var rate = this.options.rate || (this.options.clock && this.options.clock.length > 0 ? 
-                                                 "4".repeat (this.options.clock.length).split ("") 
-                                                 : [])
-                var fixed = this.options.fixed || []
-                var scale = this.options.scale || '5ns'
+                var scale = this.options.timescale || '10ns'
                 var modifyLength = 'modifyLength' in this.options ? this.options.modifyLength : 'true'
             }
             catch (err) {
@@ -244,9 +252,8 @@ class HDLwave {
             var addbtn, subbtn;
             [addbtn, subbtn] = [document.createElement ("div"), document.createElement ("div")]
             addbtn.classList.add ('btn');  subbtn.classList.add ('btn')
-            addbtn.innerHTML = '<p class="unselectable" style="font-size: 22px">+</p>'
-            subbtn.innerHTML = '<p class="unselectable" style="font-size: 24px">-</p>'
-            addbtn.id = 'add'; subbtn.id = 'sub'
+            addbtn.innerHTML = '<p class="unselectable" id="add" style="font-size: 22px">+</p>'
+            subbtn.innerHTML = '<p class="unselectable" id="sub" style="font-size: 24px">-</p>'
             addbtn.addEventListener ('click', () => { this.modTimeCol (0) }); subbtn.addEventListener ('click', () => { this.modTimeCol (1) })
             subbtn.style.marginRight = '15px'
             var wavemod = document.createElement ("p")
@@ -303,12 +310,17 @@ class HDLwave {
             
             waverow.appendChild (name)
             for (var i = 0; i < resolution; i++) {
-                var value = Object.keys (this.options.inputs).includes (signal) ?
-                            (this.options.inputs [signal][i] || '0').match (/1/i) ? 'logic1' :
-                            (this.options.inputs [signal][i] || '0').match (/0/i) ? 'logic0' :
-                            (this.options.inputs [signal][i] || '0').match (/Z/i) ? 'logicZ' : 'logicX' : 'logic0'
+                var value = Object.keys (this.options.fixed).includes (signal) ?
+                            (this.options.fixed [signal][i] || '0').match (/1/i) ? 'logic1' :
+                            (this.options.fixed [signal][i] || '0').match (/0/i) ? 'logic0' :
+                            (this.options.fixed [signal][i] || '0').match (/Z/i) ? 'logicZ' : 'logicX' : 'blank'
                 this.addUnitToWaverow (waverow, signal, i, value)
             }
+
+            Object.keys (this.options.editable).forEach (e => {
+                document.createElement ('input')
+            })
+
             this.hostDiv.appendChild (waverow)
         })
     }

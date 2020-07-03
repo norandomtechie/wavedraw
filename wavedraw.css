@@ -4,9 +4,9 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    border: 2px solid rgba(0, 0, 0, 0.05);
-    border-left: 1px solid rgba(0, 0, 0, 0.05);
-    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    border: 2px solid rgba(100, 100, 100, 0.07);
+    border-left: 1px solid rgba(100, 100, 100, 0.07);
+    border-right: 1px solid rgba(100, 100, 100, 0.07);
 }
 .unselectable {
     /* https://stackoverflow.com/questions/2310734/how-to-make-html-text-unselectable */
@@ -23,7 +23,7 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(0, 0, 0, 0.4);
     transition: border 0.3s;
     border-radius: 5px;
 }

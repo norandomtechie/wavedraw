@@ -4,16 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HDLwave embeddable</title>
-    <link href="wavedraw/hdlwave.css" rel="stylesheet"> 
+    <link href="wavedraw/wavedraw.css" rel="stylesheet"> 
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap" rel="stylesheet"> 
     <style>
+        :root {
+            --text-color: #eee;
+            --bg-color: #222;
+        }
+        [colorTheme="light"] {
+            --text-color: #000;
+            --bg-color: #ddd;
+        }
         p {
             font-family: 'Open Sans';
             font-size: 16px;
-            color: #eee;
+            color: var(--text-color);
         }
         body {
-            background: #222;
+            background: var(--bg-color);
         }
         #editor {
             width: 100%;
@@ -27,7 +35,7 @@
             border: 1px solid #bbb;
             width: 5vw;
             height: 4vh;
-            color: #fff;
+            color: var(--text-color);
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/ace.js"></script>
@@ -36,27 +44,38 @@
     <div id="editor"></div>
     <button id="render" onclick="eval(window.editor.getValue())">Render</button>
     <div style="width: 100%; margin-top: 10px; border-top: 1px solid #999; height: 5vh;"></div>
-    <div id="hdlwave"></div>
+    <div id="wavedraw"></div>
 </body>
 <script src="wavedraw/jquery.min.js"></script>
-<script src="wavedraw/hdlwave.js"></script>
+<script src="wavedraw/wavedraw.js"></script>
 <script>
+    function toggleTheme (opt=-1) {
+        if (opt == -1)
+            document.documentElement.setAttribute ('colorTheme', document.documentElement.getAttribute ('colorTheme') == 'dark' ? 'light' : 'dark')
+        else if (opt == 0)
+            document.documentElement.setAttribute ('colorTheme', 'dark')
+        else if (opt == 1)
+            document.documentElement.setAttribute ('colorTheme', 'light')
+        editor.setTheme(document.documentElement.getAttribute ("colorTheme") == "dark" ? "ace/theme/chaos" : "ace/theme/chrome");
+    }
     window.onload = () => {
+        document.documentElement.setAttribute ("colorTheme", "dark")    // well... it's just an demo thing
         setTimeout (() => {document.body.style.opacity = '1'}, 200)
         window.editor = ace.edit("editor");
-        editor.setTheme("ace/theme/chaos");
+        editor.setTheme(document.documentElement.getAttribute ("colorTheme") == "dark" ? "ace/theme/chaos" : "ace/theme/chrome");
         editor.setShowPrintMargin(false);
         editor.session.setMode("ace/mode/javascript");
         editor.setValue (
-            "var waveform = new HDLwave (document.getElementById ('hdlwave'), {\n" +
+            "var waveform = new WaveDraw (document.getElementById ('wavedraw'), {\n" +
             "    // 'resolution': 20,\n" +
-            "    'inputs': {'a': 'zzz01101001010xx101010', 'b': 'zz10101010xxx101010'},\n" +
-            "    'outputs': {'c': 'prob4_c', 'd': 'prob4_d'},\n" +
-            "    'modifyLength': true // this will prevent users from changing the time of the waveform\n" +
+            "    'fixed': {'a': 'zzz01101001010xx101010', 'b': 'zz10101010xxx101010'},\n" +
+            "    'editable': {'c': 'prob4_c', 'd': 'prob4_d'},\n" +
+            "    'timescale': '5ns', // specify the timescale of the waveform\n" +
+            "    'modifyLength': false // this will prevent users from changing the time of the waveform\n" +
             "});", -1
         )
         $(document).on ('keydown', 'body', (e) => {
-            if (e.ctrlKey && e.key.match (/s/i)) {
+            if (e.ctrlKey && e.key.match (/^s$/i)) {
                 e.preventDefault()    
                 eval(window.editor.getValue())
             }
