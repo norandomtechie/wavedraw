@@ -101,14 +101,8 @@ class WaveDraw {
     setXForUnitElement (e, opt=0) {
         switch (opt) {
             case 0: // remove
-                if (e.nodeName == "P" && e.parentNode && e.parentNode.innerHTML != '') {
-                    e.parentNode.classList.remove ('logicX')
-                    e.parentNode.innerHTML = ''
-                }
-                else if (e.nodeName == "DIV") {
-                    e.innerHTML = ''
-                    e.classList.remove ('logicX')
-                }
+                e.innerHTML = ''
+                e.classList.remove ('logicX')
                 break;
             case 1: // add
                 if (e.innerHTML == '') {
@@ -122,30 +116,39 @@ class WaveDraw {
         e.preventDefault()
         var _this = e.data
         function pullSignalByEvent (e, _this, opt=0) {
+            var field  = $('[name="' + _this.options.editable [e.target.id.slice (0, e.currentTarget.id.indexOf ('/'))] + '"]')[0]
+            var fvalue = field.getAttribute ('value').split ("")
             if (opt == 0) {
-                _this.setXForUnitElement (e.target, 0)
-                _this.setZForUnitElement (e.target, 0)
+                _this.setXForUnitElement (e.currentTarget, 0)
+                _this.setZForUnitElement (e.currentTarget, 0)
                 e.target.classList.remove ('logic1')
                 e.target.classList.add ('logic0')
             }
             else if (opt == 1) {
-                _this.setXForUnitElement (e.target, 0)
-                _this.setZForUnitElement (e.target, 0)
+                _this.setXForUnitElement (e.currentTarget, 0)
+                _this.setZForUnitElement (e.currentTarget, 0)
                 e.target.classList.remove ('logic0')
                 e.target.classList.add ('logic1')
             }
             else if (opt == 'X') {
                 e.target.classList.remove ('logic1')
                 e.target.classList.remove ('logic0')
-                _this.setZForUnitElement (e.target, 0)
-                _this.setXForUnitElement (e.target, 1)
+                _this.setZForUnitElement (e.currentTarget, 0)
+                _this.setXForUnitElement (e.currentTarget, 1)
             }
             else if (opt == 'Z') {
                 e.target.classList.remove ('logic1')
                 e.target.classList.remove ('logic0')
-                _this.setXForUnitElement (e.target, 0)
-                _this.setZForUnitElement (e.target, 1)
+                _this.setXForUnitElement (e.currentTarget, 0)
+                _this.setZForUnitElement (e.currentTarget, 1)
             }
+            fvalue [parseInt (e.target.id.slice (e.target.id.indexOf ('/') + 1))] = 
+                    e.target.classList.contains ('logic1') ? '1' :
+                    e.target.classList.contains ('logic0') ? '0' :
+                    e.target.classList.contains ('logicX') ? 'x' :
+                    e.target.children.length == 1          ? 'z' : 'e'
+            
+            field.setAttribute ('value', fvalue.join (""))
             _this.fixTransitions (Array.from (document.querySelectorAll (".event")).slice (1).indexOf (e.target))
         }
 
@@ -317,11 +320,16 @@ class WaveDraw {
                 this.addUnitToWaverow (waverow, signal, i, value)
             }
 
-            Object.keys (this.options.editable).forEach (e => {
-                document.createElement ('input')
-            })
-
             this.hostDiv.appendChild (waverow)
+        })
+
+        Object.keys (this.options.editable).forEach (e => {
+            var field = document.createElement ('input')
+            field.style.display = 'none'
+            field.setAttribute ('name', this.options.editable [e])
+            field.setAttribute ('type', 'text')
+            field.setAttribute ('value', ' '.repeat (resolution))
+            this.hostDiv.appendChild (field)
         })
     }
 }
