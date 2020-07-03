@@ -42,7 +42,11 @@
 </head>
 <body>
     <div id="editor"></div>
-    <button id="render" onclick="eval(window.editor.getValue())">Render</button>
+    <div style="display: flex; flex-direction: row; justify-content: space-evenly; width: 75%; height: max-content">
+        <button id="render" onclick="eval(window.editor.getValue())">Render</button>
+        <input type='text' name='q4_c'>
+        <input type='text' name='q4_d'>
+    </div>
     <div style="width: 100%; margin-top: 10px; border-top: 1px solid #999; height: 5vh;"></div>
     <div id="wavedraw"></div>
 </body>
@@ -68,9 +72,11 @@
         editor.setValue (
             "var waveform = new WaveDraw (document.getElementById ('wavedraw'), {\n" +
             "    // 'resolution': 20,\n" +
-            "    'fixed': {'a': 'zzz01101001010xx101010', 'b': 'zz10101010xxx101010'},\n" +
-            "    'editable': {'c': 'prob4_c', 'd': 'prob4_d'},\n" +
-            "    'timescale': '5ns', // specify the timescale of the waveform\n" +
+            "    'fixed': {'a': 'zzz01101001010xx101010', 'b': 'zz10101010xxx101010'}, // keys are signals, values are bitstreams\n" +
+            "    'editable': {'c': 'q4_c', 'd': 'q4_d'}, // keys are signals, values are names of field elements into which bitstream will be written upon bit toggling\n" +
+            "    'timescale': '5ns', // specify the timescale of the waveform - mostly cosmetic\n" +
+            "    'allowXValues': true, //prevents user from toggling X values\n" +
+            "    'allowZValues': true, //prevents user from toggling Z values\n" +
             "    'modifyLength': false // this will prevent users from changing the time of the waveform\n" +
             "});", -1
         )
@@ -78,6 +84,9 @@
             if (e.ctrlKey && e.key.match (/^s$/i)) {
                 e.preventDefault()    
                 eval(window.editor.getValue())
+            }
+            else if (e.ctrlKey && e.key.match (/^t$/i)) {
+                toggleTheme()
             }
         })
         $(document).on ('touchstart', 'body', (e) => {

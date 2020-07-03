@@ -101,73 +101,78 @@ class WaveDraw {
     setXForUnitElement (e, opt=0) {
         switch (opt) {
             case 0: // remove
-                e.innerHTML = ''
-                e.classList.remove ('logicX')
+            e.innerHTML = ''
+            e.classList.remove ('logicX')
                 break;
             case 1: // add
-                if (e.innerHTML == '') {
+            if (e.innerHTML == '') {
                     e.innerHTML = '<p class="unselectable" style="color: red; font-size: 24px;">X</p>'
                     e.classList.add ('logicX')
                 }
                 break;
+            }
+    }
+    pullSignalByElement (eventwave, _this, opt=0) {
+        var field  = $('[name="' + _this.options.editable [eventwave.id.slice (0, eventwave.id.indexOf ('/'))] + '"]')[0]
+        var fvalue = (field.value || ' '.repeat (this.options.resolution)).split ("")
+        if (opt == 0) {
+            _this.setXForUnitElement (eventwave, 0)
+            _this.setZForUnitElement (eventwave, 0)
+            eventwave.classList.remove ('logic1')
+            eventwave.classList.add ('logic0')
         }
+        else if (opt == 1) {
+            _this.setXForUnitElement (eventwave, 0)
+            _this.setZForUnitElement (eventwave, 0)
+            eventwave.classList.remove ('logic0')
+            eventwave.classList.add ('logic1')
+        }
+        else if (opt == 'X') {
+            eventwave.classList.remove ('logic1')
+            eventwave.classList.remove ('logic0')
+            _this.setZForUnitElement (eventwave, 0)
+            _this.setXForUnitElement (eventwave, 1)
+        }
+        else if (opt == 'Z') {
+            eventwave.classList.remove ('logic1')
+            eventwave.classList.remove ('logic0')
+            _this.setXForUnitElement (eventwave, 0)
+            _this.setZForUnitElement (eventwave, 1)
+        }
+        fvalue [parseInt (eventwave.id.slice (eventwave.id.indexOf ('/') + 1))] = 
+          eventwave.classList.contains ('logic1') ? '1' :
+          eventwave.classList.contains ('logic0') ? '0' :
+          eventwave.classList.contains ('logicX') ? 'x' :
+          eventwave.children.length == 1          ? 'z' : 'e'
+        
+        field.value = fvalue.join ("")
+        console.log (opt)
+        console.log (field.value)
+        _this.fixTransitions (Array.from (document.querySelectorAll (".event")).slice (1).indexOf (eventwave))
+    }
+    pullSignalByEvent (e, _this, opt=0) {
+        _this.pullSignalByElement (e.currentTarget, _this, opt)
     }
     toggleEvent (e) {
         e.preventDefault()
         var _this = e.data
-        function pullSignalByEvent (e, _this, opt=0) {
-            var field  = $('[name="' + _this.options.editable [e.target.id.slice (0, e.currentTarget.id.indexOf ('/'))] + '"]')[0]
-            var fvalue = field.getAttribute ('value').split ("")
-            if (opt == 0) {
-                _this.setXForUnitElement (e.currentTarget, 0)
-                _this.setZForUnitElement (e.currentTarget, 0)
-                e.target.classList.remove ('logic1')
-                e.target.classList.add ('logic0')
-            }
-            else if (opt == 1) {
-                _this.setXForUnitElement (e.currentTarget, 0)
-                _this.setZForUnitElement (e.currentTarget, 0)
-                e.target.classList.remove ('logic0')
-                e.target.classList.add ('logic1')
-            }
-            else if (opt == 'X') {
-                e.target.classList.remove ('logic1')
-                e.target.classList.remove ('logic0')
-                _this.setZForUnitElement (e.currentTarget, 0)
-                _this.setXForUnitElement (e.currentTarget, 1)
-            }
-            else if (opt == 'Z') {
-                e.target.classList.remove ('logic1')
-                e.target.classList.remove ('logic0')
-                _this.setXForUnitElement (e.currentTarget, 0)
-                _this.setZForUnitElement (e.currentTarget, 1)
-            }
-            fvalue [parseInt (e.target.id.slice (e.target.id.indexOf ('/') + 1))] = 
-                    e.target.classList.contains ('logic1') ? '1' :
-                    e.target.classList.contains ('logic0') ? '0' :
-                    e.target.classList.contains ('logicX') ? 'x' :
-                    e.target.children.length == 1          ? 'z' : 'e'
-            
-            field.setAttribute ('value', fvalue.join (""))
-            _this.fixTransitions (Array.from (document.querySelectorAll (".event")).slice (1).indexOf (e.target))
-        }
 
         if ((e.type == 'mousedown' || e.type == 'touchstart')) { window.dragToggle = true }
         else if ((e.type == 'mouseenter' || e.type == 'touchmove') && !window.dragToggle) { return }
         
-        if (_this.options.forcedValue == '0') { pullSignalByEvent (e, _this, 0); return }
-        else if (_this.options.forcedValue == '1') { pullSignalByEvent (e, _this, 1); return }
-        else if (_this.options.forcedValue == 'X') { pullSignalByEvent (e, _this, 'X'); return }
-        else if (_this.options.forcedValue == 'Z') { pullSignalByEvent (e, _this, 'Z'); return }
+        if (_this.options.forcedValue == '0') { _this.pullSignalByEvent (e, _this, 0); return }
+        else if (_this.options.forcedValue == '1') { _this.pullSignalByEvent (e, _this, 1); return }
+        else if (_this.options.forcedValue == 'X') { _this.pullSignalByEvent (e, _this, 'X'); return }
+        else if (_this.options.forcedValue == 'Z') { _this.pullSignalByEvent (e, _this, 'Z'); return }
 
         if (!e.target.classList.contains ('logic1')) {
-            pullSignalByEvent (e, _this, 1)
+            _this.pullSignalByEvent (e, _this, 1)
         }
         else if (!e.target.classList.contains ('logic0')) {
-            pullSignalByEvent (e, _this, 0)
+            _this.pullSignalByEvent (e, _this, 0)
         }
         else {
-            pullSignalByEvent (e, _this, 0)
+            _this.pullSignalByEvent (e, _this, 0)
         }
     }
     addUnitToWaverow (waverow, signal, time, cssClass) {
@@ -223,6 +228,8 @@ class WaveDraw {
                     this.options.resolution = resolution
                 }
                 var scale = this.options.timescale || '10ns'
+                var allowXValues = 'allowXValues' in this.options ? this.options.allowXValues : true
+                var allowZValues = 'allowZValues' in this.options ? this.options.allowZValues : true
                 var modifyLength = 'modifyLength' in this.options ? this.options.modifyLength : 'true'
             }
             catch (err) {
@@ -288,7 +295,11 @@ class WaveDraw {
         logicZ.innerHTML = '<p class="unselectable" style="font-size: 20px">Z</p>'
         logicX.id = 'forceLogicX'; logicZ.id = 'forceLogicZ'
         logicX.addEventListener ('click', () => { this.forceValue ('X') }); logicZ.addEventListener ('click', () => { this.forceValue ('Z') })
-        waverow.appendChild (logicX); waverow.appendChild (logicZ); 
+        
+        if (allowXValues) 
+            waverow.appendChild (logicX); 
+        if (allowZValues) 
+            waverow.appendChild (logicZ); 
 
         var logicT = document.createElement ("div")
         logicT.classList.add ('btn', 'logicSelected')
@@ -323,13 +334,35 @@ class WaveDraw {
             this.hostDiv.appendChild (waverow)
         })
 
-        Object.keys (this.options.editable).forEach (e => {
-            var field = document.createElement ('input')
-            field.style.display = 'none'
-            field.setAttribute ('name', this.options.editable [e])
-            field.setAttribute ('type', 'text')
-            field.setAttribute ('value', ' '.repeat (resolution))
-            this.hostDiv.appendChild (field)
+        Object.keys (this.options.editable).forEach (sig => {
+            if ($('[name="' + this.options.editable [sig] + '"]').length == 0) {
+                var field = document.createElement ('input')
+                field.style.display = 'none'
+                field.setAttribute ('name', this.options.editable [sig])
+                field.setAttribute ('type', 'text')
+                field.setAttribute ('value', ' '.repeat (resolution))
+                this.hostDiv.appendChild (field)
+            }
+            else {
+                var fieldelement = $('[name="' + this.options.editable [sig] + '"]')[0]
+                if (fieldelement.value != '') {
+                    if (fieldelement.value.length < parseInt (this.options.resolution)) {
+                        fieldelement.value += ' '.repeat (this.options.resolution - fieldelement.value.length)
+                    }
+                    fieldelement.value.split ("").forEach ((val, time) => {
+                        if (parseInt (time) > parseInt (this.options.resolution)) return
+                        if (val != ' ') {
+                            this.forceValue (val)
+                            this.pullSignalByElement (document.getElementById (sig + '/' + time), this, val.toUpperCase())
+                        }
+                    })
+                }
+                else {
+                    fieldelement.setAttribute ('value', ' '.repeat (resolution))
+                }
+            }
         })
+        // remove value forcing
+        this.forceValue ()
     }
 }
