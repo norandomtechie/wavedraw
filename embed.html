@@ -86,6 +86,7 @@
                 eval(window.editor.getValue())
             }
             else if (e.ctrlKey && e.key.match (/^t$/i)) {
+                e.preventDefault()
                 toggleTheme()
             }
         })
