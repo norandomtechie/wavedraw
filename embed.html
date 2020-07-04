@@ -72,12 +72,13 @@
         editor.setValue (
             "var waveform = new WaveDraw (document.getElementById ('wavedraw'), {\n" +
             "    // 'resolution': 20,\n" +
-            "    'fixed': {'a': 'zzz01101001010xx101010', 'b': 'zz10101010xxx101010'}, // keys are signals, values are bitstreams\n" +
+            "    'fixed': {'a': '01101001zzzxx101010', 'b': '1110101010xxx101010'}, // keys are signals, values are bitstreams\n" +
             "    'editable': {'c': 'q4_c', 'd': 'q4_d'}, // keys are signals, values are names of field elements into which bitstream will be written upon bit toggling\n" +
             "    'timescale': '5ns', // specify the timescale of the waveform - mostly cosmetic\n" +
             "    'allowXValues': true, //prevents user from toggling X values\n" +
             "    'allowZValues': true, //prevents user from toggling Z values\n" +
-            "    'modifyLength': false // this will prevent users from changing the time of the waveform\n" +
+            "    'modifyLength': false, // this will prevent users from changing the time of the waveform\n" +
+            "    'disabled': false // prevents modifying the waveforms regardless of type of wave\n" +
             "});", -1
         )
         $(document).on ('keydown', 'body', (e) => {

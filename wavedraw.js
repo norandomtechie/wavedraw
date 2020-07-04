@@ -1,20 +1,26 @@
 class WaveDraw {
     constructor(hostDiv, options) {
+        // ensure jquery is loaded
         if (!window.$) {
             throw "jQuery required for event handling. Please add jQuery to your page's head tag before WaveDraw loads."
         }
+        
+        // ensure that hostDiv does not already contain a WaveDraw diagram
+        $(hostDiv).off();
         hostDiv.innerHTML = ''
+
         this.hostDiv = hostDiv  
         this.options = options
         this.drawWaveform()
         this.fixTransitions()
     }
     modTimeCol (opt=0) {
+        if (this.options.disabled) return
         switch (opt) {
             case 0: 
                 this.options.signals.forEach (signal => {
                     var waverow = document.getElementById ("waverow/" + signal)
-                    this.addUnitToWaverow (waverow, signal, this.options.resolution, 'logic0')
+                    this.addUnitToWaverow (waverow, signal, this.options.resolution, 'blank')
                 })
                 this.options.resolution++
                 break;
@@ -139,15 +145,19 @@ class WaveDraw {
             _this.setXForUnitElement (eventwave, 0)
             _this.setZForUnitElement (eventwave, 1)
         }
+        else if (opt == 'CLR') {
+            eventwave.classList.remove ('logic1')
+            eventwave.classList.remove ('logic0')
+            _this.setXForUnitElement (eventwave, 0)
+            _this.setZForUnitElement (eventwave, 0)
+        }
         fvalue [parseInt (eventwave.id.slice (eventwave.id.indexOf ('/') + 1))] = 
           eventwave.classList.contains ('logic1') ? '1' :
           eventwave.classList.contains ('logic0') ? '0' :
           eventwave.classList.contains ('logicX') ? 'x' :
-          eventwave.children.length == 1          ? 'z' : 'e'
+          eventwave.children.length == 1          ? 'z' : ' '
         
         field.value = fvalue.join ("")
-        console.log (opt)
-        console.log (field.value)
         _this.fixTransitions (Array.from (document.querySelectorAll (".event")).slice (1).indexOf (eventwave))
     }
     pullSignalByEvent (e, _this, opt=0) {
@@ -164,6 +174,7 @@ class WaveDraw {
         else if (_this.options.forcedValue == '1') { _this.pullSignalByEvent (e, _this, 1); return }
         else if (_this.options.forcedValue == 'X') { _this.pullSignalByEvent (e, _this, 'X'); return }
         else if (_this.options.forcedValue == 'Z') { _this.pullSignalByEvent (e, _this, 'Z'); return }
+        else if (_this.options.forcedValue == 'CLR') { _this.pullSignalByEvent (e, _this, 'CLR'); return }
 
         if (!e.target.classList.contains ('logic1')) {
             _this.pullSignalByEvent (e, _this, 1)
@@ -184,15 +195,18 @@ class WaveDraw {
         else if (cssClass == 'logicX') {
             unit.innerHTML = '<p class="unselectable" style="color: red; font-size: 24px;">X</p>'
         }
-        if (cssClass != 'blank') {
+        else if (cssClass == 'logicD') {
+            unit.style.opacity = 0
+        }
+        if (cssClass != 'blank' || cssClass != 'logicD') {
             unit.classList.add (cssClass)
         }
         
         unit.id = [signal, time].join ('/')
-        if (!Object.keys (this.options.fixed).includes (signal)) {
-            $(document).on ('mousedown', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
-            $(document).on ('touchstart', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
-            $(document).on ('mouseenter', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
+        if (!Object.keys (this.options.fixed).includes (signal) && !this.options.disabled && cssClass != 'logicD') {
+            $(this.hostDiv).on ('mousedown', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
+            $(this.hostDiv).on ('touchstart', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
+            $(this.hostDiv).on ('mouseenter', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
         }
         waverow.appendChild (unit)
     }
@@ -223,23 +237,22 @@ class WaveDraw {
                 var editable = Object.keys (this.options.editable)
                 var signals = fixed.concat (editable)
                 this.options.signals = signals
-                var resolution = this.options.resolution || findMaxResolution(this.options)
-                if (!this.options.resolution) {
-                    this.options.resolution = resolution
-                }
+
+                this.options.resolution = 'resolution' in this.options ? this.options.resolution : findMaxResolution(this.options)
+                var resolution = this.options.resolution
+                
                 var scale = this.options.timescale || '10ns'
                 var allowXValues = 'allowXValues' in this.options ? this.options.allowXValues : true
                 var allowZValues = 'allowZValues' in this.options ? this.options.allowZValues : true
                 var modifyLength = 'modifyLength' in this.options ? this.options.modifyLength : 'true'
+                var disabled = 'disabled' in this.options ? this.options.disabled : 'true'
             }
             catch (err) {
-                console.error ("Some options were missing!")
-                console.error (err)
             }
         }
 
         this.hostDiv.onmouseup = () => { window.dragToggle = false }
-        document.body.ondragend = () => { window.dragToggle = false }
+        this.hostDiv.ondragend = () => { window.dragToggle = false }
 
         var waverow = document.createElement ("div")
         waverow.classList.add ('waverow')
@@ -301,6 +314,14 @@ class WaveDraw {
         if (allowZValues) 
             waverow.appendChild (logicZ); 
 
+        var logicCLR = document.createElement ("div")
+        logicCLR.classList.add ('btn');
+        logicCLR.innerHTML = '<p class="unselectable" style="font-size: 18px">CLR</p>'
+        logicCLR.id = 'forceLogicCLR'
+        logicCLR.addEventListener ('click', () => { this.forceValue ('CLR') })
+        waverow.appendChild (logicCLR); 
+
+
         var logicT = document.createElement ("div")
         logicT.classList.add ('btn', 'logicSelected')
         logicT.innerHTML = '<p class="unselectable" style="font-size: 20px">T</p>'
@@ -327,7 +348,8 @@ class WaveDraw {
                 var value = Object.keys (this.options.fixed).includes (signal) ?
                             (this.options.fixed [signal][i] || '0').match (/1/i) ? 'logic1' :
                             (this.options.fixed [signal][i] || '0').match (/0/i) ? 'logic0' :
-                            (this.options.fixed [signal][i] || '0').match (/Z/i) ? 'logicZ' : 'logicX' : 'blank'
+                            (this.options.fixed [signal][i] || '0').match (/Z/i) ? 'logicZ' : 
+                            (this.options.fixed [signal][i] || '0').match (/D/i) ? 'logicD' : 'logicX' : 'blank'
                 this.addUnitToWaverow (waverow, signal, i, value)
             }
 
@@ -351,9 +373,12 @@ class WaveDraw {
                     }
                     fieldelement.value.split ("").forEach ((val, time) => {
                         if (parseInt (time) > parseInt (this.options.resolution)) return
-                        if (val != ' ') {
+                        if (val != ' ' && !val.match (/^d$/i)) {
                             this.forceValue (val)
                             this.pullSignalByElement (document.getElementById (sig + '/' + time), this, val.toUpperCase())
+                        }
+                        else if (val.match (/^d$/i)) {
+                            document.getElementById (sig + '/' + time).style.opacity = 0
                         }
                     })
                 }
