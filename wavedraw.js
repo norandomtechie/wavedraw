@@ -1,3 +1,16 @@
+/*
+    WaveDraw.js
+    Author: Niraj Menon
+    Creation date: June 25th, 2020
+    Description: 
+        Instantiates a WaveDraw diagram inside a given container element with user-defined options for displaying 
+        timing diagrams for the purpose of viewing and editing signal trace data.
+
+        Developed to provide an interface for waveform entry in ECE 270 at Purdue University for student assignments
+        that require a visual tool for examining propagation delay and transition times using timing diagrams, as well
+        as (WIP) a VCD viewer for HDLwave, another tool developed by the author that takes Verilog for simulation with a 
+        testbench to produce VCD data, which is then parsed and rendered into a waveform on the page with WaveDraw.
+*/
 class WaveDraw {
     constructor(hostDiv, options) {
         // ensure jquery is loaded
@@ -10,7 +23,12 @@ class WaveDraw {
         hostDiv.innerHTML = ''
 
         this.hostDiv = hostDiv  
+        this.hostDiv.classList.add ('WaveDraw')
+        if (this.hostDiv.id == '') {
+            this.hostDiv.id = 'WaveDraw' + $('.WaveDraw').length.toString()
+        }
         this.options = options
+        
         this.drawWaveform()
         this.fixTransitions()
     }
@@ -19,14 +37,14 @@ class WaveDraw {
         switch (opt) {
             case 0: 
                 this.options.signals.forEach (signal => {
-                    var waverow = document.getElementById ("waverow/" + signal)
+                    var waverow = document.getElementById ("waverow_" + signal)
                     this.addUnitToWaverow (waverow, signal, this.options.resolution, 'blank')
                 })
                 this.options.resolution++
                 break;
             case 1:
                 this.options.signals.forEach (signal => {
-                    document.getElementById (signal + "/" + (this.options.resolution - 1)).remove()
+                    document.getElementById (signal + "_" + (this.options.resolution - 1)).remove()
                 })
                 this.options.resolution--
                 break;
@@ -34,13 +52,13 @@ class WaveDraw {
     }
     fixTransitions (idx=-1) {
         if (idx == -1) {
-            Array.from (document.querySelectorAll (".event")).slice (1).forEach ((curr, i) => {
-                if (i < (Array.from (document.querySelectorAll (".event")).slice (1).length - 1)) {
-                    var next = Array.from (document.querySelectorAll (".event")).slice (1)[i + 1]
+            Array.from ($('#wavedraw').find ('.event')).slice (1).forEach ((curr, i) => {
+                if (i < (Array.from ($('#wavedraw').find ('.event')).slice (1).length - 1)) {
+                    var next = Array.from ($('#wavedraw').find ('.event')).slice (1)[i + 1]
                     var highlow = (curr.classList.contains ('logic1')) && (next.classList.contains ('logic0'))
                     var lowhigh = (curr.classList.contains ('logic0')) && (next.classList.contains ('logic1'))
                     var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
-                    var samesignal = curr.id.slice (0, curr.id.indexOf ('/')) == next.id.slice (0, next.id.indexOf ('/'))
+                    var samesignal = curr.id.slice (0, curr.id.indexOf ('_')) == next.id.slice (0, next.id.indexOf ('_'))
                     if ((highlow || lowhigh) && samesignal) {
                         curr.style.borderRight = '1px solid green'  
                         next.style.borderLeft = '1px solid green'  
@@ -53,14 +71,14 @@ class WaveDraw {
             })
         }
         else {
-            var curr = Array.from (document.querySelectorAll (".event")).slice (1)[idx]
+            var curr = Array.from ($('#wavedraw').find ('.event')).slice (1)[idx]
             // ensure current wave unit is not the very last one in waveform before setting transition
-            if (idx < (Array.from (document.querySelectorAll (".event")).slice (1).length - 1)) {   
-                var next = Array.from (document.querySelectorAll (".event")).slice (1)[idx + 1]
+            if (idx < (Array.from ($('#wavedraw').find ('.event')).slice (1).length - 1)) {   
+                var next = Array.from ($('#wavedraw').find ('.event')).slice (1)[idx + 1]
                 var highlow = (curr.classList.contains ('logic1')) && (next.classList.contains ('logic0'))
                 var lowhigh = (curr.classList.contains ('logic0')) && (next.classList.contains ('logic1'))
                 var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
-                var samesignal = curr.id.slice (0, curr.id.indexOf ('/')) == next.id.slice (0, next.id.indexOf ('/'))
+                var samesignal = curr.id.slice (0, curr.id.indexOf ('_')) == next.id.slice (0, next.id.indexOf ('_'))
                 if ((highlow || lowhigh) && samesignal) {
                     curr.style.borderRight = '1px solid green'  
                     next.style.borderLeft = '1px solid green'  
@@ -72,11 +90,11 @@ class WaveDraw {
             }
             // ensure current wave unit is not the very first one in waveform before setting transition
             if (idx > 0) {
-                var prev = Array.from (document.querySelectorAll (".event")).slice (1)[idx - 1]
+                var prev = Array.from ($('#wavedraw').find ('.event')).slice (1)[idx - 1]
                 var highlow = (curr.classList.contains ('logic1')) && (prev.classList.contains ('logic0'))
                 var lowhigh = (curr.classList.contains ('logic0')) && (prev.classList.contains ('logic1'))
                 var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
-                var samesignal = curr.id.slice (0, curr.id.indexOf ('/')) == prev.id.slice (0, prev.id.indexOf ('/'))
+                var samesignal = curr.id.slice (0, curr.id.indexOf ('_')) == prev.id.slice (0, prev.id.indexOf ('_'))
                 if ((highlow || lowhigh) && samesignal) {
                     curr.style.borderLeft = '1px solid green'  
                     prev.style.borderRight = '1px solid green'  
@@ -119,7 +137,7 @@ class WaveDraw {
             }
     }
     pullSignalByElement (eventwave, _this, opt=0) {
-        var field  = $('[name="' + _this.options.editable [eventwave.id.slice (0, eventwave.id.indexOf ('/'))] + '"]')[0]
+        var field  = $('[name="' + _this.options.editable [eventwave.id.slice (0, eventwave.id.indexOf ('_'))] + '"]')[0]
         var fvalue = (field.value || ' '.repeat (this.options.resolution)).split ("")
         if (opt == 0) {
             _this.setXForUnitElement (eventwave, 0)
@@ -151,14 +169,14 @@ class WaveDraw {
             _this.setXForUnitElement (eventwave, 0)
             _this.setZForUnitElement (eventwave, 0)
         }
-        fvalue [parseInt (eventwave.id.slice (eventwave.id.indexOf ('/') + 1))] = 
+        fvalue [parseInt (eventwave.id.slice (eventwave.id.indexOf ('_') + 1))] = 
           eventwave.classList.contains ('logic1') ? '1' :
           eventwave.classList.contains ('logic0') ? '0' :
           eventwave.classList.contains ('logicX') ? 'x' :
           eventwave.children.length == 1          ? 'z' : ' '
         
         field.value = fvalue.join ("")
-        _this.fixTransitions (Array.from (document.querySelectorAll (".event")).slice (1).indexOf (eventwave))
+        _this.fixTransitions (Array.from ($(_this.hostDiv).find ('.event')).slice (1).indexOf (eventwave))
     }
     pullSignalByEvent (e, _this, opt=0) {
         _this.pullSignalByElement (e.currentTarget, _this, opt)
@@ -174,7 +192,7 @@ class WaveDraw {
         if (e.currentTarget.style.opacity == '0') { return }
         else if (_this.options.forcedValue == '0') { _this.pullSignalByEvent (e, _this, 0); return }
         else if (_this.options.forcedValue == '1') { _this.pullSignalByEvent (e, _this, 1); return }
-        else if (_this.options.forcedValue != 'T') { _this.pullSignalByEvent (e, _this, _this.options.forcedValue) }
+        else if (_this.options.forcedValue != 'T') { _this.pullSignalByEvent (e, _this, _this.options.forcedValue); return }
 
         // otherwise, perform toggling for 0/1 or 1/0 (or reset any non-logical values to 1)
         if (!e.target.classList.contains ('logic1')) {
@@ -203,17 +221,18 @@ class WaveDraw {
             unit.classList.add (cssClass)
         }
         
-        unit.id = [signal, time].join ('/')
+        unit.id = [signal, time].join ('_')
         if (!Object.keys (this.options.fixed).includes (signal) && !this.options.disabled && cssClass != 'logicD') {
-            $(this.hostDiv).on ('mousedown', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
-            $(this.hostDiv).on ('touchstart', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
-            $(this.hostDiv).on ('mouseenter', '#' + unit.id.replace ('/', '\\/'), this, this.toggleEvent)
+            var yes = ['#' + this.hostDiv.id, '#' + waverow.id, '#' + unit.id].join (' ')
+            $(unit).on ('mousedown', this, this.toggleEvent)
+            $(unit).on ('touchstart', this, this.toggleEvent)
+            $(unit).on ('mouseenter', this, this.toggleEvent)
         }
         waverow.appendChild (unit)
     }
     forceValue (opt='T') {
-        $(".logicSelected").removeClass ('logicSelected')
-        $('#forceLogic' + opt).addClass ('logicSelected')
+        $('#' + this.hostDiv.id + " > #waverow_settings > .logicSelected").removeClass ('logicSelected')
+        $('#' + this.hostDiv.id + ' > #waverow_settings > #forceLogic' + opt).addClass ('logicSelected')
         this.options.forcedValue = opt
     }
     drawWaveform () {
@@ -246,9 +265,11 @@ class WaveDraw {
                 var allowXValues = 'allowXValues' in this.options ? this.options.allowXValues : true
                 var allowZValues = 'allowZValues' in this.options ? this.options.allowZValues : true
                 var modifyLength = 'modifyLength' in this.options ? this.options.modifyLength : 'true'
-                var disabled = 'disabled' in this.options ? this.options.disabled : 'true'
+                // var disabled = 'disabled' in this.options ? this.options.disabled : 'true'  //do not remove, option is actually used
             }
             catch (err) {
+                console.error ("There was an error parsing the options you provided.  The error is printed below.")
+                console.error (err)
             }
         }
 
@@ -257,7 +278,7 @@ class WaveDraw {
 
         var waverow = document.createElement ("div")
         waverow.classList.add ('waverow')
-        waverow.id = 'waverow/settings'
+        waverow.id = 'waverow_settings'
 
         // Timescale view
         var timep = document.createElement ("p")
@@ -278,7 +299,8 @@ class WaveDraw {
             addbtn.classList.add ('btn');  subbtn.classList.add ('btn')
             addbtn.innerHTML = '<p class="unselectable" id="add" style="font-size: 22px">+</p>'
             subbtn.innerHTML = '<p class="unselectable" id="sub" style="font-size: 24px">-</p>'
-            addbtn.addEventListener ('click', () => { this.modTimeCol (0) }); subbtn.addEventListener ('click', () => { this.modTimeCol (1) })
+            addbtn.addEventListener ('click', () => { this.modTimeCol (0) }); 
+            subbtn.addEventListener ('click', () => { this.modTimeCol (1) })
             subbtn.style.marginRight = '15px'
             var wavemod = document.createElement ("p")
             wavemod.innerHTML = 'Modify waveform time:&nbsp;&nbsp;'
@@ -299,7 +321,8 @@ class WaveDraw {
         logic0.innerHTML = '<p class="unselectable" style="font-size: 20px">0</p>'
         logic1.innerHTML = '<p class="unselectable" style="font-size: 20px">1</p>'
         logic0.id = 'forceLogic0'; logic1.id = 'forceLogic1'
-        logic0.addEventListener ('click', () => { this.forceValue ('0') }); logic1.addEventListener ('click', () => { this.forceValue ('1') })
+        logic0.addEventListener ('click', () => { this.forceValue ('0') }); 
+        logic1.addEventListener ('click', () => { this.forceValue ('1') })
         waverow.appendChild (logic0); waverow.appendChild (logic1); 
 
         var logicX, logicZ;
@@ -308,7 +331,8 @@ class WaveDraw {
         logicX.innerHTML = '<p class="unselectable" style="font-size: 20px">X</p>'
         logicZ.innerHTML = '<p class="unselectable" style="font-size: 20px">Z</p>'
         logicX.id = 'forceLogicX'; logicZ.id = 'forceLogicZ'
-        logicX.addEventListener ('click', () => { this.forceValue ('X') }); logicZ.addEventListener ('click', () => { this.forceValue ('Z') })
+        logicX.addEventListener ('click', () => { this.forceValue ('X') }); 
+        logicZ.addEventListener ('click', () => { this.forceValue ('Z') })
         
         if (allowXValues) 
             waverow.appendChild (logicX); 
@@ -326,7 +350,7 @@ class WaveDraw {
         var logicT = document.createElement ("div")
         logicT.classList.add ('btn', 'logicSelected')
         logicT.innerHTML = '<p class="unselectable" style="font-size: 20px">T</p>'
-        logicT.title = 'Default toggling mode (flips between 1 and 0 or vice versa when clicking and/or dragging through wave events.'
+        logicT.title = 'Default mode (flips between 1 and 0 or vice versa).'
         logicT.id = 'forceLogicT'
         logicT.addEventListener ('click', () => { this.forceValue ('T') });
         waverow.appendChild (logicT); 
@@ -337,11 +361,11 @@ class WaveDraw {
         signals.forEach (signal => {
             waverow = document.createElement ("div")
             waverow.classList.add ('waverow')
-            waverow.id = 'waverow/' + signal
+            waverow.id = 'waverow_' + signal
 
             var name = document.createElement ("p")
             name.innerHTML = signal
-            name.id = "name/" + signal
+            name.id = "name_" + signal
             name.style.width = (maxchars * 8 + 15) + 'px'
             
             waverow.appendChild (name)
@@ -358,7 +382,7 @@ class WaveDraw {
         })
 
         Object.keys (this.options.editable).forEach (sig => {
-            if ($('[name="' + this.options.editable [sig] + '"]').length == 0) {
+            if ($('[name="' + this.options.editable [sig] + '"]').length == 0) {    // if field element does not exist, create it
                 var field = document.createElement ('input')
                 field.style.display = 'none'
                 field.setAttribute ('name', this.options.editable [sig])
@@ -376,10 +400,10 @@ class WaveDraw {
                         if (parseInt (time) > parseInt (this.options.resolution)) return
                         if (val != ' ' && !val.match (/^d$/i)) {
                             this.forceValue (val)
-                            this.pullSignalByElement (document.getElementById (sig + '/' + time), this, val.toUpperCase())
+                            this.pullSignalByElement (document.getElementById (sig + '_' + time), this, val.toUpperCase())
                         }
                         else if (val.match (/^d$/i)) {
-                            document.getElementById (sig + '/' + time).style.opacity = 0
+                            document.getElementById (sig + '_' + time).style.opacity = 0
                         }
                     })
                 }
