@@ -392,8 +392,6 @@ class WaveDraw {
             }
             else {
                 var fieldelement = $('[name="' + this.options.editable [sig] + '"]')[0]
-                console.log (fieldelement)
-                console.log (sig)
                 if (fieldelement.value != '') {
                     if (fieldelement.value.length < parseInt (this.options.resolution)) {
                         fieldelement.value += ' '.repeat (this.options.resolution - fieldelement.value.length)
@@ -405,7 +403,6 @@ class WaveDraw {
                             this.pullSignalByElement ($(this.hostDiv).find ('#' + sig + '_' + time)[0], this, val.toUpperCase())
                         }
                         else if (val.match (/^d$/i)) {
-                            console.log (sig + '_' + time)
                             $(this.hostDiv).find ('#' + sig + '_' + time)[0].style.opacity = 0
                         }
                     })
