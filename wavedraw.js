@@ -170,12 +170,13 @@ class WaveDraw {
         if ((e.type == 'mousedown' || e.type == 'touchstart')) { window.dragToggle = true }
         else if ((e.type == 'mouseenter' || e.type == 'touchmove') && !window.dragToggle) { return }
         
-        if (_this.options.forcedValue == '0') { _this.pullSignalByEvent (e, _this, 0); return }
+        // check if value is being forced and is not in toggle mode
+        if (e.currentTarget.style.opacity == '0') { return }
+        else if (_this.options.forcedValue == '0') { _this.pullSignalByEvent (e, _this, 0); return }
         else if (_this.options.forcedValue == '1') { _this.pullSignalByEvent (e, _this, 1); return }
-        else if (_this.options.forcedValue == 'X') { _this.pullSignalByEvent (e, _this, 'X'); return }
-        else if (_this.options.forcedValue == 'Z') { _this.pullSignalByEvent (e, _this, 'Z'); return }
-        else if (_this.options.forcedValue == 'CLR') { _this.pullSignalByEvent (e, _this, 'CLR'); return }
+        else if (_this.options.forcedValue != 'T') { _this.pullSignalByEvent (e, _this, _this.options.forcedValue) }
 
+        // otherwise, perform toggling for 0/1 or 1/0 (or reset any non-logical values to 1)
         if (!e.target.classList.contains ('logic1')) {
             _this.pullSignalByEvent (e, _this, 1)
         }
@@ -387,7 +388,7 @@ class WaveDraw {
                 }
             }
         })
-        // remove value forcing
+        // set forced value to default ('T')
         this.forceValue ()
     }
 }
