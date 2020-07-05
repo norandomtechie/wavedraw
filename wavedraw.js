@@ -392,6 +392,8 @@ class WaveDraw {
             }
             else {
                 var fieldelement = $('[name="' + this.options.editable [sig] + '"]')[0]
+                console.log (fieldelement)
+                console.log (sig)
                 if (fieldelement.value != '') {
                     if (fieldelement.value.length < parseInt (this.options.resolution)) {
                         fieldelement.value += ' '.repeat (this.options.resolution - fieldelement.value.length)
@@ -400,10 +402,11 @@ class WaveDraw {
                         if (parseInt (time) > parseInt (this.options.resolution)) return
                         if (val != ' ' && !val.match (/^d$/i)) {
                             this.forceValue (val)
-                            this.pullSignalByElement (document.getElementById (sig + '_' + time), this, val.toUpperCase())
+                            this.pullSignalByElement ($(this.hostDiv).find ('#' + sig + '_' + time)[0], this, val.toUpperCase())
                         }
                         else if (val.match (/^d$/i)) {
-                            document.getElementById (sig + '_' + time).style.opacity = 0
+                            console.log (sig + '_' + time)
+                            $(this.hostDiv).find ('#' + sig + '_' + time)[0].style.opacity = 0
                         }
                     })
                 }
