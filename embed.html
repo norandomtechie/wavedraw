@@ -25,7 +25,7 @@
         }
         #editor {
             width: 100%;
-            height: 20vh;
+            height: 40vh;
             margin-bottom: 10px;
             border: 1px solid #999;
         }
@@ -44,11 +44,14 @@
     <div id="editor"></div>
     <div style="display: flex; flex-direction: row; justify-content: space-evenly; width: 75%; height: max-content">
         <button id="render" onclick="eval(window.editor.getValue())">Render</button>
+        <input type='text' name='q4_a'>
+        <input type='text' name='q4_b'>
         <input type='text' name='q4_c'>
         <input type='text' name='q4_d'>
     </div>
     <div style="width: 100%; margin-top: 10px; border-top: 1px solid #999; height: 5vh;"></div>
-    <div id="wavedraw"></div>
+    <div id="wavedraw1"></div>
+    <div id="wavedraw2"></div>
 </body>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="wavedraw/wavedraw.js"></script>
@@ -70,16 +73,26 @@
         editor.setShowPrintMargin(false);
         editor.session.setMode("ace/mode/javascript");
         editor.setValue (
-            "var waveform = new WaveDraw (document.getElementById ('wavedraw'), {\n" +
+            "var waveform1 = new WaveDraw (document.getElementById ('wavedraw1'), {\n" +
             "    // 'resolution': 20,\n" +
             "    'fixed': {'a': '01101001zzzxx101010', 'b': '1110101010xxx101010'}, // keys are signals, values are bitstreams\n" +
+            "    'editable': {'c': 'q4_a', 'd': 'q4_b'}, // keys are signals, values are names of field elements into which bitstream will be written upon bit toggling\n" +
+            "    'timescale': '5ns', // specify the timescale of the waveform - mostly cosmetic\n" +
+            "    'allowXValues': true, //prevents user from toggling X values\n" +
+            "    'allowZValues': true, //prevents user from toggling Z values\n" +
+            "    'modifyLength': false, // this will prevent users from changing the time of the waveform\n" +
+            "    'disabled': false // prevents modifying the waveforms regardless of type of wave\n" +
+            "});\n\n" +
+            "var waveform2 = new WaveDraw (document.getElementById ('wavedraw2'), {\n" +
+            "    // 'resolution': 20,\n" +
+            "    'fixed': {'a': 'zzz1011111xx0000', 'b': 'ddd101xx1zzz0110'}, // keys are signals, values are bitstreams\n" +
             "    'editable': {'c': 'q4_c', 'd': 'q4_d'}, // keys are signals, values are names of field elements into which bitstream will be written upon bit toggling\n" +
             "    'timescale': '5ns', // specify the timescale of the waveform - mostly cosmetic\n" +
             "    'allowXValues': true, //prevents user from toggling X values\n" +
             "    'allowZValues': true, //prevents user from toggling Z values\n" +
             "    'modifyLength': false, // this will prevent users from changing the time of the waveform\n" +
             "    'disabled': false // prevents modifying the waveforms regardless of type of wave\n" +
-            "});", -1
+            "});\n", -1
         )
         $(document).on ('keydown', 'body', (e) => {
             if (e.ctrlKey && e.key.match (/^s$/i)) {

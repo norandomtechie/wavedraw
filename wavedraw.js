@@ -52,9 +52,9 @@ class WaveDraw {
     }
     fixTransitions (idx=-1) {
         if (idx == -1) {
-            Array.from ($('#wavedraw').find ('.event')).slice (1).forEach ((curr, i) => {
-                if (i < (Array.from ($('#wavedraw').find ('.event')).slice (1).length - 1)) {
-                    var next = Array.from ($('#wavedraw').find ('.event')).slice (1)[i + 1]
+            Array.from ($(this.hostDiv).find ('.event')).slice (1).forEach ((curr, i) => {
+                if (i < (Array.from ($(this.hostDiv).find ('.event')).slice (1).length - 1)) {
+                    var next = Array.from ($(this.hostDiv).find ('.event')).slice (1)[i + 1]
                     var highlow = (curr.classList.contains ('logic1')) && (next.classList.contains ('logic0'))
                     var lowhigh = (curr.classList.contains ('logic0')) && (next.classList.contains ('logic1'))
                     var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
@@ -71,10 +71,10 @@ class WaveDraw {
             })
         }
         else {
-            var curr = Array.from ($('#wavedraw').find ('.event')).slice (1)[idx]
+            var curr = Array.from ($(this.hostDiv).find ('.event')).slice (1)[idx]
             // ensure current wave unit is not the very last one in waveform before setting transition
-            if (idx < (Array.from ($('#wavedraw').find ('.event')).slice (1).length - 1)) {   
-                var next = Array.from ($('#wavedraw').find ('.event')).slice (1)[idx + 1]
+            if (idx < (Array.from ($(this.hostDiv).find ('.event')).slice (1).length - 1)) {   
+                var next = Array.from ($(this.hostDiv).find ('.event')).slice (1)[idx + 1]
                 var highlow = (curr.classList.contains ('logic1')) && (next.classList.contains ('logic0'))
                 var lowhigh = (curr.classList.contains ('logic0')) && (next.classList.contains ('logic1'))
                 var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
@@ -90,7 +90,7 @@ class WaveDraw {
             }
             // ensure current wave unit is not the very first one in waveform before setting transition
             if (idx > 0) {
-                var prev = Array.from ($('#wavedraw').find ('.event')).slice (1)[idx - 1]
+                var prev = Array.from ($(this.hostDiv).find ('.event')).slice (1)[idx - 1]
                 var highlow = (curr.classList.contains ('logic1')) && (prev.classList.contains ('logic0'))
                 var lowhigh = (curr.classList.contains ('logic0')) && (prev.classList.contains ('logic1'))
                 var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
