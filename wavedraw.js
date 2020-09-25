@@ -14,18 +14,13 @@
 class WaveDraw {
     constructor(hostDiv, options) {
         // ensure jquery is loaded
-        if (!window.$) {
-            throw "jQuery required for event handling. Please add jQuery to your page's head tag before WaveDraw loads."
-        }
-        
         // ensure that hostDiv does not already contain a WaveDraw diagram
-        $(hostDiv).off();
         hostDiv.innerHTML = ''
 
         this.hostDiv = hostDiv  
-        this.hostDiv.classList.add ('WaveDraw')
+        this.hostDiv.classList.toggle ('WaveDraw', true)
         if (this.hostDiv.id == '') {
-            this.hostDiv.id = 'WaveDraw' + $('.WaveDraw').length.toString()
+            this.hostDiv.id = 'WaveDraw' + document.querySelectorAll ('.WaveDraw').length.toString()
         }
         this.options = options
         
@@ -37,14 +32,14 @@ class WaveDraw {
         switch (opt) {
             case 0: 
                 this.options.signals.forEach (signal => {
-                    var waverow = document.getElementById ("waverow_" + signal)
+                    var waverow = this.hostDiv.getElementById ("waverow_" + signal)
                     this.addUnitToWaverow (waverow, signal, this.options.resolution, 'blank')
                 })
                 this.options.resolution++
                 break;
             case 1:
                 this.options.signals.forEach (signal => {
-                    document.getElementById (signal + "_" + (this.options.resolution - 1)).remove()
+                    this.hostDiv.getElementById (signal + "_" + (this.options.resolution - 1)).remove()
                 })
                 this.options.resolution--
                 break;
@@ -52,12 +47,12 @@ class WaveDraw {
     }
     fixTransitions (idx=-1) {
         if (idx == -1) {
-            Array.from ($(this.hostDiv).find ('.event')).slice (1).forEach ((curr, i) => {
-                if (i < (Array.from ($(this.hostDiv).find ('.event')).slice (1).length - 1)) {
-                    var next = Array.from ($(this.hostDiv).find ('.event')).slice (1)[i + 1]
+            Array.from (this.hostDiv.querySelectorAll ('.event')).slice (1).forEach ((curr, i) => {
+                if (i < (Array.from (this.hostDiv.querySelectorAll ('.event')).slice (1).length - 1)) {
+                    var next = Array.from (this.hostDiv.querySelectorAll ('.event')).slice (1)[i + 1]
                     var highlow = (curr.classList.contains ('logic1')) && (next.classList.contains ('logic0'))
                     var lowhigh = (curr.classList.contains ('logic0')) && (next.classList.contains ('logic1'))
-                    var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
+                    // var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
                     var samesignal = curr.id.slice (0, curr.id.indexOf ('_')) == next.id.slice (0, next.id.indexOf ('_'))
                     if ((highlow || lowhigh) && samesignal) {
                         curr.style.borderRight = '1px solid green'  
@@ -71,13 +66,13 @@ class WaveDraw {
             })
         }
         else {
-            var curr = Array.from ($(this.hostDiv).find ('.event')).slice (1)[idx]
+            var curr = Array.from (this.hostDiv.querySelectorAll ('.event')).slice (1)[idx]
             // ensure current wave unit is not the very last one in waveform before setting transition
-            if (idx < (Array.from ($(this.hostDiv).find ('.event')).slice (1).length - 1)) {   
-                var next = Array.from ($(this.hostDiv).find ('.event')).slice (1)[idx + 1]
+            if (idx < (Array.from (this.hostDiv.querySelectorAll ('.event')).slice (1).length - 1)) {   
+                var next = Array.from (this.hostDiv.querySelectorAll ('.event')).slice (1)[idx + 1]
                 var highlow = (curr.classList.contains ('logic1')) && (next.classList.contains ('logic0'))
                 var lowhigh = (curr.classList.contains ('logic0')) && (next.classList.contains ('logic1'))
-                var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
+                // var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
                 var samesignal = curr.id.slice (0, curr.id.indexOf ('_')) == next.id.slice (0, next.id.indexOf ('_'))
                 if ((highlow || lowhigh) && samesignal) {
                     curr.style.borderRight = '1px solid green'  
@@ -90,10 +85,10 @@ class WaveDraw {
             }
             // ensure current wave unit is not the very first one in waveform before setting transition
             if (idx > 0) {
-                var prev = Array.from ($(this.hostDiv).find ('.event')).slice (1)[idx - 1]
+                var prev = Array.from (this.hostDiv.querySelectorAll ('.event')).slice (1)[idx - 1]
                 var highlow = (curr.classList.contains ('logic1')) && (prev.classList.contains ('logic0'))
                 var lowhigh = (curr.classList.contains ('logic0')) && (prev.classList.contains ('logic1'))
-                var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
+                // var ztoz = (curr.classList.contains ('logicZ')) && (next.classList.contains ('logicZ'))
                 var samesignal = curr.id.slice (0, curr.id.indexOf ('_')) == prev.id.slice (0, prev.id.indexOf ('_'))
                 if ((highlow || lowhigh) && samesignal) {
                     curr.style.borderLeft = '1px solid green'  
@@ -137,7 +132,7 @@ class WaveDraw {
             }
     }
     pullSignalByElement (eventwave, _this, opt=0) {
-        var field  = $('[name="' + _this.options.editable [eventwave.id.slice (0, eventwave.id.indexOf ('_'))] + '"]')[0]
+        var field  = document.querySelector (_this.options.m_editable [eventwave.id.slice (0, eventwave.id.indexOf ('_'))])
         var fvalue = (field.value || ' '.repeat (this.options.resolution)).split ("")
         if (opt == 0) {
             _this.setXForUnitElement (eventwave, 0)
@@ -176,14 +171,14 @@ class WaveDraw {
           eventwave.children.length == 1          ? 'z' : ' '
         
         field.value = fvalue.join ("")
-        _this.fixTransitions (Array.from ($(_this.hostDiv).find ('.event')).slice (1).indexOf (eventwave))
+        _this.fixTransitions (Array.from (_this.hostDiv.querySelectorAll ('.event')).slice (1).indexOf (eventwave))
     }
     pullSignalByEvent (e, _this, opt=0) {
         _this.pullSignalByElement (e.currentTarget, _this, opt)
     }
     toggleEvent (e) {
         e.preventDefault()
-        var _this = e.data
+        var _this = e.currentTarget._this
 
         if ((e.type == 'mousedown' || e.type == 'touchstart')) { window.dragToggle = true }
         else if ((e.type == 'mouseenter' || e.type == 'touchmove') && !window.dragToggle) { return }
@@ -222,17 +217,17 @@ class WaveDraw {
         }
         
         unit.id = [signal, time].join ('_')
+        unit._this = this
         if (!Object.keys (this.options.fixed).includes (signal) && !this.options.disabled && cssClass != 'logicD') {
-            var yes = ['#' + this.hostDiv.id, '#' + waverow.id, '#' + unit.id].join (' ')
-            $(unit).on ('mousedown', this, this.toggleEvent)
-            $(unit).on ('touchstart', this, this.toggleEvent)
-            $(unit).on ('mouseenter', this, this.toggleEvent)
+            unit.addEventListener ('mousedown', this.toggleEvent)
+            unit.addEventListener ('touchstart', this.toggleEvent)
+            unit.addEventListener ('mouseenter', this.toggleEvent)
         }
         waverow.appendChild (unit)
     }
     forceValue (opt='T') {
-        $('#' + this.hostDiv.id + " > #waverow_settings > .logicSelected").removeClass ('logicSelected')
-        $('#' + this.hostDiv.id + ' > #waverow_settings > #forceLogic' + opt).addClass ('logicSelected')
+        this.hostDiv.querySelector ("#waverow_settings > .logicSelected").classList.remove ('logicSelected')
+        this.hostDiv.querySelector ('#waverow_settings > #forceLogic' + opt).classList.add ('logicSelected')
         this.options.forcedValue = opt
     }
     drawWaveform () {
@@ -240,7 +235,7 @@ class WaveDraw {
             return ['fixed', 'editable'].map (opt => opt in options).reduce ((prev, curr) => prev && curr, true)
         }
         function findMaxResolution (options) {
-            var bitstreams = Object.values (options.fixed).concat (Object.values (options.editable))
+            var bitstreams = Object.values (options.fixed).concat (Object.values (options.m_editable))
             var maxBits = 0
             bitstreams.forEach (bs => { maxBits = maxBits < bs.length ? bs.length : maxBits })
             return maxBits
@@ -253,8 +248,13 @@ class WaveDraw {
         }
         else {
             try {
+                this.options.m_editable = {};
+                Object.keys (this.options.editable).forEach (k => {
+                    var key = k.replace (/'/g, "p").replace (new RegExp ("\\*", "g"), "m").replace (new RegExp ("\\(", "g"), "s").replace (new RegExp ("\\)", "g"), "v");
+                    this.options.m_editable [key] = this.options.editable [k]
+                })
                 var fixed = Object.keys (this.options.fixed)
-                var editable = Object.keys (this.options.editable)
+                var editable = Object.keys (this.options.m_editable)
                 var signals = fixed.concat (editable)
                 this.options.signals = signals
 
@@ -322,7 +322,9 @@ class WaveDraw {
         logic1.innerHTML = '<p class="unselectable" style="font-size: 20px">1</p>'
         logic0.id = 'forceLogic0'; logic1.id = 'forceLogic1'
         logic0.addEventListener ('click', () => { this.forceValue ('0') }); 
+        logic0.title = 'Logic high mode (sets the chosen wave slot to 0)'
         logic1.addEventListener ('click', () => { this.forceValue ('1') })
+        logic1.title = 'Logic low mode (sets the chosen wave slot to 1)'
         waverow.appendChild (logic0); waverow.appendChild (logic1); 
 
         var logicX, logicZ;
@@ -331,7 +333,9 @@ class WaveDraw {
         logicX.innerHTML = '<p class="unselectable" style="font-size: 20px">X</p>'
         logicZ.innerHTML = '<p class="unselectable" style="font-size: 20px">Z</p>'
         logicX.id = 'forceLogicX'; logicZ.id = 'forceLogicZ'
+        logicX.title = 'Metastable/unknown mode (sets the chosen wave slot to X)'
         logicX.addEventListener ('click', () => { this.forceValue ('X') }); 
+        logicZ.title = 'Disconnected/hi-Z mode (sets the chosen wave slot to Z)'
         logicZ.addEventListener ('click', () => { this.forceValue ('Z') })
         
         if (allowXValues) 
@@ -343,6 +347,7 @@ class WaveDraw {
         logicCLR.classList.add ('btn');
         logicCLR.innerHTML = '<p class="unselectable" style="font-size: 18px">CLR</p>'
         logicCLR.id = 'forceLogicCLR'
+        logicCLR.title = 'Clearing mode (removes set waves at the chosen wave slot)'
         logicCLR.addEventListener ('click', () => { this.forceValue ('CLR') })
         waverow.appendChild (logicCLR); 
 
@@ -364,7 +369,7 @@ class WaveDraw {
             waverow.id = 'waverow_' + signal
 
             var name = document.createElement ("p")
-            name.innerHTML = signal
+            name.innerHTML = Object.keys (this.options.m_editable).includes (signal) ? Object.keys (this.options.editable)[Object.keys (this.options.m_editable).indexOf (signal)] : signal
             name.id = "name_" + signal
             name.style.width = (maxchars * 8 + 15) + 'px'
             
@@ -381,38 +386,32 @@ class WaveDraw {
             this.hostDiv.appendChild (waverow)
         })
 
-        Object.keys (this.options.editable).forEach (sig => {
-            if ($('[name="' + this.options.editable [sig] + '"]').length == 0) {    // if field element does not exist, create it
-                var field = document.createElement ('input')
-                field.style.display = 'none'
-                field.setAttribute ('name', this.options.editable [sig])
-                field.setAttribute ('type', 'text')
-                field.setAttribute ('value', ' '.repeat (resolution))
-                this.hostDiv.appendChild (field)
+        Object.keys (this.options.m_editable).forEach (sig => {
+            var fieldelement = document.querySelector (this.options.m_editable [sig])
+            if (fieldelement == null) {
+                window.alert ("Error: " + this.options.m_editable [sig] + " was not found. ")
+                throw ("Error: " + this.options.m_editable [sig] + " was not found. ")
+            }
+            if (fieldelement.value != '') {
+                if (fieldelement.value.length < parseInt (this.options.resolution)) {
+                    fieldelement.value += ' '.repeat (this.options.resolution - fieldelement.value.length)
+                }
+                fieldelement.value.split ("").forEach ((val, time) => {
+                    if (parseInt (time) > parseInt (this.options.resolution)) return
+                    if (val != ' ' && !val.match (/^d$/i)) {
+                        this.forceValue (val)
+                        this.pullSignalByElement (this.hostDiv.querySelectorAll ('\#' + sig + '_' + time)[0], this, val.toUpperCase())
+                    }
+                    else if (val.match (/^d$/i)) {
+                        this.hostDiv.querySelectorAll ('\#' + sig + '_' + time)[0].style.opacity = 0
+                    }
+                })
             }
             else {
-                var fieldelement = $('[name="' + this.options.editable [sig] + '"]')[0]
-                if (fieldelement.value != '') {
-                    if (fieldelement.value.length < parseInt (this.options.resolution)) {
-                        fieldelement.value += ' '.repeat (this.options.resolution - fieldelement.value.length)
-                    }
-                    fieldelement.value.split ("").forEach ((val, time) => {
-                        if (parseInt (time) > parseInt (this.options.resolution)) return
-                        if (val != ' ' && !val.match (/^d$/i)) {
-                            this.forceValue (val)
-                            this.pullSignalByElement ($(this.hostDiv).find ('#' + sig + '_' + time)[0], this, val.toUpperCase())
-                        }
-                        else if (val.match (/^d$/i)) {
-                            $(this.hostDiv).find ('#' + sig + '_' + time)[0].style.opacity = 0
-                        }
-                    })
-                }
-                else {
-                    fieldelement.setAttribute ('value', ' '.repeat (resolution))
-                }
+                fieldelement.setAttribute ('value', ' '.repeat (resolution))
             }
         })
         // set forced value to default ('T')
-        this.forceValue ()
+        this.forceValue()
     }
 }

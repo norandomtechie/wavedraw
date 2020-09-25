@@ -76,7 +76,7 @@
             "var waveform1 = new WaveDraw (document.getElementById ('wavedraw1'), {\n" +
             "    // 'resolution': 20,\n" +
             "    'fixed': {'a': '01101001zzzxx101010', 'b': '1110101010xxx101010'}, // keys are signals, values are bitstreams\n" +
-            "    'editable': {'c': 'q4_a', 'd': 'q4_b'}, // keys are signals, values are names of field elements into which bitstream will be written upon bit toggling\n" +
+            "    'editable': {'c': '[name=\"q4_a\"]', 'd': '[name=\"q4_b\"]'}, // keys are signals, values are names of field elements into which bitstream will be written upon bit toggling\n" +
             "    'timescale': '5ns', // specify the timescale of the waveform - mostly cosmetic\n" +
             "    'allowXValues': true, //prevents user from toggling X values\n" +
             "    'allowZValues': true, //prevents user from toggling Z values\n" +
@@ -86,7 +86,7 @@
             "var waveform2 = new WaveDraw (document.getElementById ('wavedraw2'), {\n" +
             "    // 'resolution': 20,\n" +
             "    'fixed': {'a': 'zzz1011111xx0000', 'b': 'ddd101xx1zzz0110'}, // keys are signals, values are bitstreams\n" +
-            "    'editable': {'c': 'q4_c', 'd': 'q4_d'}, // keys are signals, values are names of field elements into which bitstream will be written upon bit toggling\n" +
+            "    'editable': {'c': '[name=\"q4_c\"]', 'd': '[name=\"q4_d\"]'}, // keys are signals, values are names of field elements into which bitstream will be written upon bit toggling\n" +
             "    'timescale': '5ns', // specify the timescale of the waveform - mostly cosmetic\n" +
             "    'allowXValues': true, //prevents user from toggling X values\n" +
             "    'allowZValues': true, //prevents user from toggling Z values\n" +
