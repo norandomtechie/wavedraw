@@ -1,12 +1,24 @@
+:root {
+    --event-line-color: rgba(100, 100, 100, 0.1);
+    --line-color: rgba(211, 211, 211, 0.3);
+    --text-color: rgba(211, 211, 211, 1);
+}
+
+[theme="light"] {
+    --event-line-color: rgba(100, 100, 100, 0.04);
+    --line-color: rgba(21, 22, 26, 0.6);
+    --text-color: rgba(21, 22, 26, 1);
+}
+
 .event {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 40px;
     height: 40px;
-    border: 2px solid rgba(100, 100, 100, 0.07);
-    border-left: 1px solid rgba(100, 100, 100, 0.07);
-    border-right: 1px solid rgba(100, 100, 100, 0.07);
+    border: 2px solid var(--event-line-color);
+    border-left: 1px solid var(--event-line-color);
+    border-right: 1px solid var(--event-line-color);
     z-index: 3;
 }
 .unselectable {
@@ -24,19 +36,33 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    border: 2px solid rgba(0, 0, 0, 0.4);
+    border: 3px solid rgba(0, 0, 0, 0.3);
     transition: border 0.3s;
     border-radius: 5px;
+    font-size: 100%;
+}
+#ctrval {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    margin: 0;
+    padding: 0;
+    text-align: center;
 }
 .logicSelected {
-    border: 4px solid rgba(0, 0, 0, 0.3);
+    border: 3px solid rgba(0, 128, 0, 0.3);
     transition: border 0.3s;
 }
 .logic0 {
     border-bottom: 2px solid green;
 }
+.logic0.editable {
+    border-bottom: 2px solid rgb(0, 128, 90);
+}
 .logic1 {
     border-top: 2px solid green;
+}
+.logic1.editable {
+    border-top: 2px solid rgb(0, 128, 90);
 }
 .logicX {
     border-top: 2px solid red;
@@ -44,23 +70,53 @@
     display: flex;
     align-items: center;
 }
+.logicX.editable {
+    border-top: 2px solid rgb(128, 30, 0);
+    border-bottom: 2px solid rgb(128, 30, 0);
+}
 .subLogicZ {
     background-color: orange;
     height: 2px;
     width: calc(100% + 1px);
 }
-.waverow {
+.subLogicZ.editable {
+    background-color: rgb(156, 102, 0);
+}
+.waverow, .subwaverow {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     width: max-content;
     height: auto;
-    margin-bottom: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    transition: height 0.3s;
+}
+.bus {
+    border: 1px solid #777;
+}
+.subwaverow {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.collapsible {
+    width: 20px; 
+    margin: 0; 
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s;
 }
 .WaveDraw p {
     /* because Niraj can't bear to see his API not use his favorite font styling from Piazza. */
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-weight: 300;
     font-size: 18px;
+}
+
+/* .WaveDraw .subwaverow p {
+    font-size: 16px;
+} */
+.event > p {
+    font-size: 85%;
 }
